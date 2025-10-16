@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.rb": "ruby",
+        "pascal": "pascal",
+        "cstring": "cpp",
+        "iostream": "cpp"
+    }
+}
