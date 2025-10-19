@@ -8,12 +8,16 @@ using namespace std;
 
 class VM {
 public: // acho que nao compensa fazer getter e setter pras variaveis
-    uint8_t RAM[4096];      // Memória 4KB
+    
     uint16_t PC;            // Program Counter
-    uint8_t V[16];          // Registradores de propósito geral
     uint8_t SP;             // Stack Pointer
     uint16_t I;             // Registrador de índice
+    uint8_t DT;             // Temporizador
+    uint8_t ST;             // Temporizador de som
+    uint8_t V[16];          // Registradores de propósito geral
+    
     uint16_t stack[16];     // Pilha
+    uint8_t RAM[4096];      // Memória 4KB
     uint8_t DISPLAY[64*32]; // Tela
 
     VM(uint16_t pc_inicial) {
@@ -53,7 +57,7 @@ public: // acho que nao compensa fazer getter e setter pras variaveis
 
     void VM_CarregarROM(char* arq_rom) {
         ifstream rom(arq_rom, ios::binary); // abre como binario em modo leitura
-        if(!rom.is_open()) { cerr << "não foi possivel abrir o arquivo " << arq_rom << endl; }
+        if(!rom.is_open()) { cerr << "não foi possivel abrir o arquivo" << arq_rom << endl; }
 
         rom.seekg(0, ios::end);
         size_t tamanho = rom.tellg(); // tamanho da ROM
@@ -68,7 +72,7 @@ public: // acho que nao compensa fazer getter e setter pras variaveis
         char* destino = reinterpret_cast<char*>(this->RAM + this->PC); // colocar bytes na RAM a partir desse endereço
         rom.read(destino, tamanho); // bytes de tamanho 'tamanho'
         if(!rom) {
-            cerr << "deu erro ao ler a ROM" << endl;
+            cerr << "ocorreu um erro ao ler a ROM" << endl;
             rom.close();
             return;
         }
@@ -78,8 +82,48 @@ public: // acho que nao compensa fazer getter e setter pras variaveis
 
     };
 
-    void VM_ExecutarInstrucao();
-    void VM_ImprimirRegistradores();
+    void VM_ExecutarInstrucao(){
+        uint8_t inst0 = this->RAM[this->PC];
+        uint8_t inst1 = this->RAM[this->PC + 1];
+        uint16_t inst = (inst0 << 8) | inst1;
+
+        this->PC += 2;
+
+        uint8_t grupo = inst >> 12;
+        uint8_t X     = (inst & 0x0F00) >> 8;
+        uint8_t Y     = (inst & 0x00F0) >> 4;
+        uint8_t N     = inst & 0x000F;
+        uint8_t NN    = inst & 0x00FF;
+        uint8_t NNN   = inst & 0x0FFF;
+
+        switch(grupo){
+
+        case 0:
+            // CLS
+            if(inst == 0x00E0){
+                for(int i = 0; i < 64 * 32; i++){
+                    this->DISPLAY[i] = 0;
+                }
+                break;
+            }
+
+        case 6:
+            this->V[X] = NN;
+            break;
+
+        default:
+            cout << "Grupo não implementado! Instrução: 0x" << (int)inst << endl;
+            exit(1); //stdlib
+        }
+    }
+
+    void VM_ImprimirRegistradores(){
+        cout << "PC: 0x" << std::hex << this->PC << " " << endl;
+        cout << "I: 0x" << this->I << " " << endl;
+        cout << "SP: 0x" << (int)this->SP << "\n" << endl;
+        for(int i = 0; i < 16; i++)
+            cout << "V[" << i << "]: 0x" << (int)this->V[i] << " " << endl;
+    }
 
 };
 

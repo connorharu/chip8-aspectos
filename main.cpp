@@ -8,6 +8,8 @@ int main(int argc, char** argv){
 
     vm.VM_CarregarROM(argv[1]);
 
+    vm.VM_ImprimirRegistradores();
+
     cout << "primeiros 16 bytes da RAM a partir do PC:" << endl;
     for (int i = 0; i < 16; i++) {
         printf("%02X ", vm.RAM[vm.PC + i]);
