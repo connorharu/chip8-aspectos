@@ -16,6 +16,8 @@ int main(int argc, char** argv){
     }
     cout << endl;
 
+    
+
     // comentado por agora
     // #ifdef DEBUG
     // vm.VM_ImprimirRegistradores();
