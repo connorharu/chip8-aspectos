@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-VM::VM(uint16_t pc_inicial) : tela(10) {
+VM::VM(uint16_t pc_inicial) : tela(10), teclado() {
     this->PC = pc_inicial; // requisito valor passado por parametro
     for (int i = 0; i < 4096; i++){ this->RAM[i] = 0; }
     for (int i = 0; i < 16; i++){ this->V[i] = 0; }
@@ -34,7 +34,7 @@ VM::VM(uint16_t pc_inicial) : tela(10) {
         RAM[i] = hexadecimais[i];
     }
     
-    while(!tela.verificarFechar()){}
+    // while(!tela.verificarFechar()){}
 };
 
 void VM::VM_CarregarROM(char* arq_rom) {

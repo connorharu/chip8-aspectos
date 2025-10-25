@@ -1,10 +1,14 @@
 #include "c8vm.hpp"
 #include "defs.hpp"
+#include "teclado.hpp"
+#include "tela.hpp"
+#include <SDL2/SDL.h>
 
 int main(int argc, char** argv){
     if(argc < 2) { cerr << "faltou argumentos" << endl; }
 
     VM vm(0x200);
+    Teclado teclado;
 
     vm.VM_CarregarROM(argv[1]);
 
@@ -16,7 +20,22 @@ int main(int argc, char** argv){
     }
     cout << endl;
 
-    
+    cout << "testando o teclado, CLICA DENTRO DA TELA SDL PRA CONSEGUIR TESTAR\n" << endl;
+
+    bool sair = false;
+    while(!sair) {
+        teclado.Atualizar();
+
+        for(int i = 0; i < 16; i++) {
+            if(teclado.Pressionada(i)) {
+                cout << "a tecla " << hex << i << " foi pressionada\n" << endl;
+            }
+        }
+
+        SDL_Delay(50);
+    }
+
+    SDL_Quit();
 
     // comentado por agora
     // #ifdef DEBUG
@@ -30,4 +49,5 @@ int main(int argc, char** argv){
     //     #endif
     // }
 
+    return 0;
 }

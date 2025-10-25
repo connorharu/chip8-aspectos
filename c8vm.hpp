@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstdint>
 #include "tela.hpp"
+#include "teclado.hpp"
 // #include <cstring>
 using namespace std;
 
@@ -11,6 +12,7 @@ class VM {
 public: // acho que nao compensa fazer getter e setter pras variaveis
 
     Tela tela;
+    Teclado teclado;
     
     uint16_t PC;            // Program Counter
     uint8_t SP;             // Stack Pointer
@@ -30,7 +32,6 @@ public: // acho que nao compensa fazer getter e setter pras variaveis
     void VM_ExecutarInstrucao();
 
     void VM_ImprimirRegistradores();
-
 };
 
 
