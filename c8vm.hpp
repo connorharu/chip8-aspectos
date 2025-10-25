@@ -3,82 +3,32 @@
 #include <iostream>
 #include <fstream>
 #include <cstdint>
+#include "tela.hpp"
 // #include <cstring>
 using namespace std;
 
 class VM {
 public: // acho que nao compensa fazer getter e setter pras variaveis
-    uint8_t RAM[4096];      // Memória 4KB
+
+    Tela tela;
+    
     uint16_t PC;            // Program Counter
-    uint8_t V[16];          // Registradores de propósito geral
     uint8_t SP;             // Stack Pointer
     uint16_t I;             // Registrador de índice
+    uint8_t DT;             // Temporizador
+    uint8_t ST;             // Temporizador de som
+    uint8_t V[16];          // Registradores de propósito geral
+    
     uint16_t stack[16];     // Pilha
+    uint8_t RAM[4096];      // Memória 4KB
     uint8_t DISPLAY[64*32]; // Tela
 
-    VM(uint16_t pc_inicial) {
-        this->PC = pc_inicial; // requisito valor passado por parametro
-        for (int i = 0; i < 4096; i++){ this->RAM[i] = 0; }
-        for (int i = 0; i < 16; i++){ this->V[i] = 0; }
-        for (int i = 0; i < 16; i++){ this->stack[i] = 0; }
-        for (int i = 0; i < 64 * 32; i++){ this->DISPLAY[i] = 0; }
-        this->SP = 0;
-        this->I = 0;
-    
-        uint8_t hexadecimais[80] = {
-            0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-            0x20, 0x60, 0x20, 0x20, 0x70, // 1
-            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-            0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-        };
-    
-        for (int i = 0; i < 80; i++) {
-            RAM[i] = hexadecimais[i];
-        }
-        
-        // TO-DO: TECLADO, DELAY E SOUND
-    };
+    VM(uint16_t pc_inicial);
 
-    void VM_CarregarROM(char* arq_rom) {
-        ifstream rom(arq_rom, ios::binary); // abre como binario em modo leitura
-        if(!rom.is_open()) { cerr << "não foi possivel abrir o arquivo " << arq_rom << endl; }
-
-        rom.seekg(0, ios::end);
-        size_t tamanho = rom.tellg(); // tamanho da ROM
-        rom.seekg(0, ios::beg);
-
-        if(tamanho > (4096 - this->PC)) {
-            cerr << "rom muito grande pra caber na memória" << endl;
-            rom.close();
-            return;
-        }
-
-        char* destino = reinterpret_cast<char*>(this->RAM + this->PC); // colocar bytes na RAM a partir desse endereço
-        rom.read(destino, tamanho); // bytes de tamanho 'tamanho'
-        if(!rom) {
-            cerr << "deu erro ao ler a ROM" << endl;
-            rom.close();
-            return;
-        }
-
-        rom.close();
-        cout << "ROM carregada em 0x" << hex << this->PC << endl; // imprime hexadecimal
-
-    };
+    void VM_CarregarROM(char* arq_rom);
 
     void VM_ExecutarInstrucao();
+
     void VM_ImprimirRegistradores();
 
 };
