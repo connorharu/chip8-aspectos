@@ -1,10 +1,17 @@
 #include "teclado.hpp"
 
 Teclado::Teclado() {
-    for(int i = 0; i < 16; i++) keys[i] = false; // não há teclas pressionadas
-}
+    for(int i = 0; i < 16; i++) {
+        keys[i] = false;
+        prev_keys[i] = false; // não há teclas pressionadas
+    }
+}    
 
 void Teclado::Atualizar() {
+    // salva o estado anterior antes de ler o novo p/ debounce
+    for (int i = 0; i < 16; i++)
+        prev_keys[i] = keys[i];
+
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
         if(event.type == SDL_QUIT) exit(0);
@@ -36,7 +43,12 @@ void Teclado::Atualizar() {
     }
 }
 
-bool Teclado::Pressionada(uint8_t chip8_key) const {
+bool Teclado::Pressionada(uint8_t chip8_key) const { // pode ser util dps ent fiz uma funçao separada pro debounce
     if(chip8_key > 0xF) return false;
     return keys[chip8_key];
+}
+
+bool Teclado::Debounce(uint8_t chip8_key) const {
+    if(chip8_key > 0xF) return false;
+    return keys[chip8_key] && !prev_keys[chip8_key];
 }

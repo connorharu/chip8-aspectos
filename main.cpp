@@ -27,7 +27,7 @@ int main(int argc, char** argv){
         teclado.Atualizar();
 
         for(int i = 0; i < 16; i++) {
-            if(teclado.Pressionada(i)) {
+            if(teclado.Debounce(i)) {
                 cout << "a tecla " << hex << i << " foi pressionada\n" << endl;
             }
         }
