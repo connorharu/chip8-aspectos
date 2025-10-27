@@ -76,7 +76,7 @@ void VM::VM_ExecutarInstrucao(){
     uint8_t Y     = (inst & 0x00F0) >> 4;
     uint8_t N     = inst & 0x000F;
     uint8_t NN    = inst & 0x00FF;
-    uint8_t NNN   = inst & 0x0FFF;
+    uint16_t NNN   = inst & 0x0FFF;
 
     switch(grupo){
 
@@ -89,9 +89,53 @@ void VM::VM_ExecutarInstrucao(){
             break;
         }
 
+    case 1:
+        this->PC = NNN;
+        break;
+    
+    case 3:
+        if (V[X] == NN) this->PC += 2;
+        break;
+
+    case 4:
+        if (V[X] != NN) this->PC += 2;
+        break;
+
     case 6:
         this->V[X] = NN;
         break;
+
+    case 7:
+        this->V[X] += NN;
+        break;
+
+    case 0xa:
+        this->I = NNN;
+        break;
+    
+    case 0xd: {
+        uint8_t x = V[X] % 64;
+        uint8_t y = V[Y] % 32;
+        V[0xF] = 0;
+        for (int linha_y = 0; linha_y < N; linha_y++) {
+            uint8_t pixel = RAM[I + linha_y];
+
+            for (int linha_x = 0; linha_x < 8; linha_x++) {
+                if ((pixel & (0x80 >> linha_x)) != 0) { // testa cada bit
+                    int px = (x + linha_x) % 64;
+                    int py = (y + linha_y) % 32;
+                    int pos = py * 64 + px;
+
+                    if (DISPLAY[pos] == 1)
+                        V[0xF] = 1; // houve colisão (não vi as consquências disso ainda)
+
+                    DISPLAY[pos] ^= 1; // XOR
+                }
+            }
+        }
+        this->tela.exibirImagem(DISPLAY);
+        break;
+    }
 
     default:
         cout << "Grupo não implementado! Instrução: 0x" << (int)inst << endl;
