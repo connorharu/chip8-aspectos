@@ -3,6 +3,7 @@
 #include "teclado.hpp"
 #include "tela.hpp"
 #include <SDL2/SDL.h>
+#include <stdlib.h>
 
 //Quantos quadros por segundo serão processados
 #define FPS_ALVO 60
@@ -19,13 +20,15 @@ int main(int argc, char** argv){
 
     vm.VM_CarregarROM(argv[1]);
 
-    vm.VM_ImprimirRegistradores();
+    srand(10); // para instrução que precisa do rand()
+    
+    // vm.VM_ImprimirRegistradores();
 
-    cout << "primeiros 16 bytes da RAM a partir do PC:" << endl;
-    for (int i = 0; i < 16; i++) {
-        printf("%02X ", vm.RAM[vm.PC + i]);
-    }
-    cout << endl;
+    // cout << "primeiros 16 bytes da RAM a partir do PC:" << endl;
+    // for (int i = 0; i < 16; i++) {
+    //     printf("%02X ", vm.RAM[vm.PC + i]);
+    // }
+    // cout << endl;
 
     // cout << "testando o teclado, CLICA DENTRO DA TELA SDL PRA CONSEGUIR TESTAR\n" << endl;
 
@@ -51,20 +54,14 @@ int main(int argc, char** argv){
 
     while(1){
 
-        Uint32 inicio_frame = SDL_GetTicks();
-
         vm.VM_ExecutarInstrucao();
         vm.teclado.Atualizar(); // pode ser encapsulado melhor
-
-        Uint32 duracao_frame = SDL_GetTicks() - inicio_frame;
-        if(duracao_frame < ATRASO_FRAME){
-            SDL_Delay(ATRASO_FRAME - duracao_frame);
-        }
+        vm.tela.exibirImagem(vm.DISPLAY);
 
         #ifdef DEBUG
         vm.VM_ImprimirRegistradores();
+        while(!vm.teclado.Debounce(1)) vm.teclado.Atualizar();
         #endif
-        
     }
 
     return 0;
