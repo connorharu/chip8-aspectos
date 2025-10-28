@@ -6,16 +6,52 @@
 #include <stdlib.h>
 
 int main(int argc, char** argv){
-    if(argc < 2) { cerr << "faltou argumentos" << endl; }
+    if (argc < 2) {
+        cerr << "Uso: " << argv[0] << " arquivo_rom [-e escala da tela] [-f freq da cpu] [-c pc inicial]\n";
+        return 1;
+    }
 
-    VM vm(0x200);
-    // Teclado teclado;
+    int TELA_ESCALA = 10;
+    uint16_t PC_INICIAL = 0x200;
+    int CPU_FREQ = 1000;
 
-    vm.VM_CarregarROM(argv[1]);
+    // lê parâmetros opcionais
+    for (int i = 2; i < argc; i++) {
+        if (argv[i][0] == '-') {
+            switch (argv[i][1]) {
+                case 'e': // escala
+                    if (i + 1 < argc) TELA_ESCALA = atoi(argv[++i]);
+                    else cerr << "Faltou valor para -e\n";
+                    break;
+
+                case 'f': // frequência
+                    if (i + 1 < argc) CPU_FREQ = atoi(argv[++i]);
+                    else cerr << "Faltou valor para -f\n";
+                    break;
+
+                case 'c': // PC inicial
+                    if (i + 1 < argc) PC_INICIAL = strtol(argv[++i], nullptr, 0); // aceita 0x...
+                    else cerr << "Faltou valor para -c\n";
+                    break;
+
+                default:
+                    cerr << "Opção desconhecida: " << argv[i] << endl;
+                    break;
+            }
+        }
+    }
+
+    Tela tela(TELA_ESCALA);
+    VM vm(PC_INICIAL, tela);
+
+
+    if(vm.VM_CarregarROM(argv[1])){
+        return 1;
+    }
 
     srand(10); // para instrução que precisa do rand()
     
-    const int CPU_FREQ = 1000; // Frequência da CPU variável, aqui tá fixa por enquanto
+    
     const int TIMER_FREQ = 60; // 60Hz fixos (timers e tela)
     const double CPU_INTERVAL = 1000.0 / CPU_FREQ; // em ms
     const double TIMER_INTERVAL = 1000.0 / TIMER_FREQ; // em ms

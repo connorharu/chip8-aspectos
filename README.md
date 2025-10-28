@@ -1,6 +1,16 @@
 # chip8-aspectos
 Código da implementação de um chip-8 para a disciplina de Aspectos de Linguagens de Programação.
 
+## Compilação
+
+<code>make all
+</code>
+
+## Execução
+
+<code>./chip8 arquivo_rom [-e escala da tela] [-f freq da cpu] [-c pc inicial]
+</code>
+
 ## Mapeamento do teclado
 
 | Teclado Chip-8 | Teclado Físico |
