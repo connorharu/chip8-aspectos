@@ -9,7 +9,7 @@
 using namespace std;
 
 class VM {
-public: // acho que nao compensa fazer getter e setter pras variaveis
+    private: // acho que nao compensa fazer getter e setter pras variaveis
 
     Tela tela;
     Teclado teclado;
@@ -24,6 +24,9 @@ public: // acho que nao compensa fazer getter e setter pras variaveis
     uint16_t stack[16];     // Pilha
     uint8_t RAM[4096];      // Memória 4KB
     uint8_t DISPLAY[64*32]; // Tela
+    bool atualizarDisplay;  // Flag para renderizar a tela
+
+    public:
 
     VM(uint16_t pc_inicial);
 
@@ -32,6 +35,14 @@ public: // acho que nao compensa fazer getter e setter pras variaveis
     void VM_ExecutarInstrucao();
 
     void VM_ImprimirRegistradores();
+
+    void VM_AtualizarTeclado();
+
+    void VM_AtualizarTela();
+
+    void VM_AtualizarTimers();
+
+    void VM_TocarSom();
 };
 
 

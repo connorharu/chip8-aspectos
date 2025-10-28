@@ -1,4 +1,5 @@
 #include "c8vm.hpp"
+#include "defs.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,8 +34,6 @@ VM::VM(uint16_t pc_inicial) : tela(10), teclado() {
     for (int i = 0; i < 80; i++) {
         RAM[i] = hexadecimais[i];
     }
-    
-    // while(!tela.verificarFechar()){}
 };
 
 void VM::VM_CarregarROM(char* arq_rom) {
@@ -76,22 +75,251 @@ void VM::VM_ExecutarInstrucao(){
     uint8_t Y     = (inst & 0x00F0) >> 4;
     uint8_t N     = inst & 0x000F;
     uint8_t NN    = inst & 0x00FF;
-    uint8_t NNN   = inst & 0x0FFF;
+    uint16_t NNN   = inst & 0x0FFF;
+
+    #ifdef DEBUG
+    cout << "Instrução executada: 0x" << (int)inst << endl;
+    #endif
 
     switch(grupo){
 
-    case 0:
+    case 0: {
         // CLS
         if(inst == 0x00E0){
             for(int i = 0; i < 64 * 32; i++){
                 this->DISPLAY[i] = 0;
             }
+            this->atualizarDisplay = true;
             break;
         }
+        if(inst == 0x00EE){
+            this->SP--;
+            this->PC = this->stack[this->SP];
+            break;
+        }
+        break;
+    }
+
+    case 1:
+        this->PC = NNN;
+        break;
+    
+    case 2: {
+        this->stack[this->SP] = this->PC;
+        this->SP++;
+        this->PC = NNN;
+        break;
+    }
+
+    case 3:
+        if (this->V[X] == NN) this->PC += 2;
+        break;
+
+    case 4:
+        if (this->V[X] != NN) this->PC += 2;
+        break;
+
+    case 5: 
+        if (this->V[X] == this->V[Y]) this->PC += 2;
+        break;
 
     case 6:
         this->V[X] = NN;
         break;
+
+    case 7:
+        this->V[X] += NN;
+        break;
+
+    case 8: {
+        switch (N) {
+        case 0:
+            this->V[X] = this->V[Y];
+            break;
+        
+        case 1:
+            this->V[X] = this->V[X] | this->V[Y];
+            break;
+
+        case 2:
+            this->V[X] = this->V[X] & this->V[Y];
+            break;
+
+        case 3:
+            this->V[X] = this->V[X] ^ this->V[Y];
+            break;
+
+        case 4: {
+            this->V[0xF] = 0;
+            if (this->V[X] + this->V[Y] > 255) {
+                this->V[0xF] = 1; // overflow
+            }
+            this->V[X] = this->V[X] + this->V[Y];
+            break;
+        }
+
+        case 5: {
+            this->V[0xF] = 1;
+            if (this->V[X] < this->V[Y]) {
+                this->V[0xF] = 0; // underflow
+            }
+            this->V[X] = this->V[X] - this->V[Y];
+            break;
+        }
+
+        case 6: {
+            // this->V[X] = this->V[Y]; // de acordo com a documentação isso pode ser configurável
+            this->V[0xF] = this->V[X] & 0x01;
+            this->V[X] = this->V[X] >> 1;
+            break;
+        }
+
+        case 7: {
+            this->V[0xF] = 1;
+            if (this->V[Y] < this->V[X]) {
+                this->V[0xF] = 0; // underflow
+            }
+            this->V[X] = this->V[Y] - this->V[X];
+            break;
+        }
+
+        case 0xE: {
+            // this->V[X] = this->V[Y]; // de acordo com a documentação isso pode ser configurável
+            this->V[0xF] = (this->V[X] & 0x80) ? 1 : 0;
+            this->V[X] = this->V[X] << 1;
+            break;
+        }
+
+        default:
+            cout << "Instrução não encontrada: 0x" << (int)inst << endl;
+            exit(1); //stdlib
+        }
+        break;
+    }
+
+    case 9: 
+        if (this->V[X] != this->V[Y]) this->PC += 2;
+        break;
+
+    case 0xA:
+        this->I = NNN;
+        break;
+    
+    case 0xB:
+        this->PC = this->V[0] + NNN;
+        break;
+
+    case 0xC:
+        this->V[X] = (rand() % 256) & NN;
+        break;
+
+    case 0xD: {
+        uint8_t x = V[X] % 64;
+        uint8_t y = V[Y] % 32;
+        this->V[0xF] = 0;
+        for (int linha_y = 0; linha_y < N; linha_y++) {
+            uint8_t pixel = this->RAM[I + linha_y];
+
+            for (int linha_x = 0; linha_x < 8; linha_x++) {
+                if ((pixel & (0x80 >> linha_x)) != 0) { // testa cada bit
+                    int px = (x + linha_x) % 64;
+                    int py = (y + linha_y) % 32;
+                    int pos = py * 64 + px;
+
+                    if (this->DISPLAY[pos] == 1)
+                        V[0xF] = 1; // houve colisão 
+                        
+                    this->DISPLAY[pos] ^= 1; // XOR
+                    this->atualizarDisplay = true;
+                }
+            }
+        }
+        break;
+    }
+
+    case 0xE: {
+        if(NN == 0x9E) {
+            if (this->teclado.Pressionada(this->V[X])) this->PC += 2;
+            break;
+        }
+        if(NN == 0xA1) {
+            if (!this->teclado.Pressionada(this->V[X])) this->PC += 2;
+            break;
+        }
+    }
+
+    case 0xF: {
+
+        switch(NN) {
+
+            case 0x07: 
+                this->V[X] = this->DT;
+                break;
+
+            case 0x15:
+                this->DT = this->V[X];
+                break;
+
+            case 0x18:
+                this->ST = this->V[X];
+                break;
+
+            case 0x1E: {
+                this->V[0xF] = 0;
+                this->I += V[X];
+                if (this->I > 0x0FFF) {
+                    this->V[0xF] = 1;
+                }
+                break;
+            }
+
+            case 0x0A: {
+                bool alguma_pressionada = false;
+                for (int i = 0; i < 16; i++) {
+                    if (this->teclado.Debounce(i)) {
+                        this->V[X] = i;
+                        alguma_pressionada = true;
+                        break;
+                    }
+                }
+                if (!alguma_pressionada) {
+                    this->PC -= 2;
+                }
+                break;
+            }
+
+            case 0x29:
+                this->I = this->V[X] * 5; // cada caractere tem 5 bytes
+                break;
+
+            case 0x33: {
+                uint8_t val = this->V[X];
+                this->RAM[I] = val / 100;
+                this->RAM[I+1] = (val / 10) % 10;
+                this->RAM[I+2] = val % 10;
+                break;
+            }
+
+            case 0x55: {
+                for (int i = 0; i < X + 1; i++) {
+                    this->RAM[I+i] = this->V[0+i];
+                }
+                break;
+            }
+
+            case 0x65: {
+                for (int i = 0; i < X + 1; i++) {
+                    this->V[0+i] = this->RAM[I+i];
+                }
+                break;
+            }
+
+            default:
+                cout << "Instrução não encontrada: 0x" << (int)inst << endl;
+                exit(1); //stdlib
+        }
+        break;
+    }
 
     default:
         cout << "Grupo não implementado! Instrução: 0x" << (int)inst << endl;
@@ -102,7 +330,32 @@ void VM::VM_ExecutarInstrucao(){
 void VM::VM_ImprimirRegistradores(){
     cout << "PC: 0x" << std::hex << this->PC << " " << endl;
     cout << "I: 0x" << this->I << " " << endl;
-    cout << "SP: 0x" << (int)this->SP << "\n" << endl;
+    cout << "SP: 0x" << (int)this->SP << endl;
+    cout << "DT: 0x" << (int)this->DT << endl;
+    cout << "ST: 0x" << (int)this->ST << endl;
+    cout << "Topo da stack: 0x" << (int)this->stack[this->SP] << "\n" << endl;
     for(int i = 0; i < 16; i++)
         cout << "V[" << i << "]: 0x" << (int)this->V[i] << " " << endl;
+}
+
+void VM::VM_AtualizarTeclado(){
+    this->teclado.Atualizar();
+}
+
+void VM::VM_AtualizarTela(){
+    if (this->atualizarDisplay) {
+        this->tela.exibirImagem(this->DISPLAY);
+        this->atualizarDisplay = false;
+    }
+}
+
+void VM::VM_AtualizarTimers(){
+    if (this->DT > 0) this->DT--;
+    if (this->ST > 0) this->ST--;
+}
+
+void VM::VM_TocarSom(){
+    if (this->ST > 0) {
+        // beep
+    }
 }

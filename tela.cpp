@@ -14,7 +14,7 @@ Tela::Tela(int escalaFator) {
     }
 
     window = SDL_CreateWindow(
-        "Tela SDL",
+        "Chip8",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         largura * escala,
