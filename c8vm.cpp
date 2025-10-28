@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-VM::VM(uint16_t pc_inicial, Tela& tela): PC(pc_inicial), tela(tela), teclado() {
+VM::VM(uint16_t pc_inicial, Tela& tela, AutoFalante& autofalante): PC(pc_inicial), tela(tela), autofalante(autofalante), teclado() {
 
     for (int i = 0; i < 4096; i++){ this->RAM[i] = 0; }
     for (int i = 0; i < 16; i++){ this->V[i] = 0; }
@@ -359,7 +359,5 @@ void VM::VM_AtualizarTimers(){
 }
 
 void VM::VM_TocarSom(){
-    if (this->ST > 0) {
-        // beep
-    }
+    this->autofalante.beep(this->ST > 0);
 }
