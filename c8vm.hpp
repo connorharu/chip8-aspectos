@@ -5,6 +5,7 @@
 #include <cstdint>
 #include "tela.hpp"
 #include "teclado.hpp"
+#include "autofalante.hpp"
 // #include <cstring>
 using namespace std;
 
@@ -13,6 +14,7 @@ class VM {
 
     Tela& tela;
     Teclado teclado;
+    AutoFalante& autofalante;
     
     uint16_t PC;            // Program Counter
     uint8_t SP;             // Stack Pointer
@@ -28,7 +30,7 @@ class VM {
 
     public:
 
-    VM(uint16_t pc_inicial, Tela& tela);
+    VM(uint16_t pc_inicial, Tela& tela, AutoFalante& autofalante);
 
     int VM_CarregarROM(char* arq_rom);
 

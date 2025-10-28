@@ -4,6 +4,7 @@
 #include "tela.hpp"
 #include <SDL2/SDL.h>
 #include <stdlib.h>
+#include "autofalante.hpp"
 
 int main(int argc, char** argv){
     if (argc < 2) {
@@ -41,8 +42,9 @@ int main(int argc, char** argv){
         }
     }
 
+    AutoFalante autofalante;
     Tela tela(TELA_ESCALA);
-    VM vm(PC_INICIAL, tela);
+    VM vm(PC_INICIAL, tela, autofalante);
 
 
     if(vm.VM_CarregarROM(argv[1])){

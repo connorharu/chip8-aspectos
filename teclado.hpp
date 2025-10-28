@@ -1,6 +1,5 @@
 #pragma once
 #include <SDL2/SDL.h>
-#include <cstdint>
 
 class Teclado {
 public:
