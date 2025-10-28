@@ -5,30 +5,25 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 
-//Quantos quadros por segundo serão processados
-#define FPS_ALVO 60
-
-//ATRASO_FRAME é o número máximo de milisegundos que cada frame 
-//deve ocupar
-#define ATRASO_FRAME (1000/FPS_ALVO)
-
 int main(int argc, char** argv){
     if(argc < 2) { cerr << "faltou argumentos" << endl; }
 
     VM vm(0x200);
-    Teclado teclado;
+    // Teclado teclado;
 
     vm.VM_CarregarROM(argv[1]);
 
     srand(10); // para instrução que precisa do rand()
     
-    // vm.VM_ImprimirRegistradores();
+    const int CPU_FREQ = 1000; // Frequência da CPU variável, aqui tá fixa por enquanto
+    const int TIMER_FREQ = 60; // 60Hz fixos (timers e tela)
+    const double CPU_INTERVAL = 1000.0 / CPU_FREQ; // em ms
+    const double TIMER_INTERVAL = 1000.0 / TIMER_FREQ; // em ms
 
-    // cout << "primeiros 16 bytes da RAM a partir do PC:" << endl;
-    // for (int i = 0; i < 16; i++) {
-    //     printf("%02X ", vm.RAM[vm.PC + i]);
-    // }
-    // cout << endl;
+    Uint64 ultimo_tempo_cpu = SDL_GetPerformanceCounter();
+    Uint64 ultimo_tempo_timer = SDL_GetPerformanceCounter();
+    double cpu_acumulado = 0.0;
+    double timer_acumulado = 0.0;
 
     // cout << "testando o teclado, CLICA DENTRO DA TELA SDL PRA CONSEGUIR TESTAR\n" << endl;
 
@@ -45,24 +40,36 @@ int main(int argc, char** argv){
     //     SDL_Delay(50);
     // }
 
-    // SDL_Quit();
+    while(1) {
 
-    // comentado por agora
-    // #ifdef DEBUG
-    // vm.VM_ImprimirRegistradores();
-    // #endif
+        Uint64 agora = SDL_GetPerformanceCounter();
+        double delta_ms = (double)(agora - ultimo_tempo_cpu) * 1000.0 / (double)SDL_GetPerformanceFrequency();
+        ultimo_tempo_cpu = agora;
+        cpu_acumulado += delta_ms;
+        timer_acumulado += delta_ms;
 
-    while(1){
+        vm.VM_AtualizarTeclado();
 
-        vm.VM_ExecutarInstrucao();
-        vm.teclado.Atualizar(); // pode ser encapsulado melhor
-        vm.tela.exibirImagem(vm.DISPLAY);
+        while (cpu_acumulado >= CPU_INTERVAL) {
+            vm.VM_ExecutarInstrucao();
+            cpu_acumulado -= CPU_INTERVAL; // executa quantas instruções forem possíveis entre cada intervalo de CPU
+        }
+
+        if (timer_acumulado >= TIMER_INTERVAL) {
+            timer_acumulado -= TIMER_INTERVAL; // espera para atualizar tela/timers sem ser ocupada
+            vm.VM_AtualizarTimers();
+            vm.VM_AtualizarTela();
+            vm.VM_TocarSom();
+        }
+
+        SDL_Delay(1); // para executar mais tranquilo
 
         #ifdef DEBUG
         vm.VM_ImprimirRegistradores();
-        while(!vm.teclado.Debounce(1)) vm.teclado.Atualizar();
         #endif
     }
+
+    SDL_Quit();
 
     return 0;
 }

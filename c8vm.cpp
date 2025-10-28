@@ -89,11 +89,12 @@ void VM::VM_ExecutarInstrucao(){
             for(int i = 0; i < 64 * 32; i++){
                 this->DISPLAY[i] = 0;
             }
+            this->atualizarDisplay = true;
             break;
         }
         if(inst == 0x00EE){
-            this->PC = stack[SP];
             this->SP--;
+            this->PC = this->stack[this->SP];
             break;
         }
         break;
@@ -103,11 +104,12 @@ void VM::VM_ExecutarInstrucao(){
         this->PC = NNN;
         break;
     
-    case 2:
-        this->stack[SP] = this->PC;
+    case 2: {
+        this->stack[this->SP] = this->PC;
         this->SP++;
         this->PC = NNN;
         break;
+    }
 
     case 3:
         if (this->V[X] == NN) this->PC += 2;
@@ -192,6 +194,7 @@ void VM::VM_ExecutarInstrucao(){
             cout << "Instrução não encontrada: 0x" << (int)inst << endl;
             exit(1); //stdlib
         }
+        break;
     }
 
     case 9: 
@@ -224,9 +227,10 @@ void VM::VM_ExecutarInstrucao(){
                     int pos = py * 64 + px;
 
                     if (this->DISPLAY[pos] == 1)
-                        V[0xF] = 1; // houve colisão (não vi as consquências disso ainda)
-
+                        V[0xF] = 1; // houve colisão 
+                        
                     this->DISPLAY[pos] ^= 1; // XOR
+                    this->atualizarDisplay = true;
                 }
             }
         }
@@ -272,7 +276,7 @@ void VM::VM_ExecutarInstrucao(){
             case 0x0A: {
                 bool alguma_pressionada = false;
                 for (int i = 0; i < 16; i++) {
-                    if (this->teclado.Pressionada(i)) {
+                    if (this->teclado.Debounce(i)) {
                         this->V[X] = i;
                         alguma_pressionada = true;
                         break;
@@ -311,9 +315,10 @@ void VM::VM_ExecutarInstrucao(){
             }
 
             default:
-                cout << "Grupo não implementado! Instrução: 0x" << (int)inst << endl;
+                cout << "Instrução não encontrada: 0x" << (int)inst << endl;
                 exit(1); //stdlib
         }
+        break;
     }
 
     default:
@@ -325,7 +330,32 @@ void VM::VM_ExecutarInstrucao(){
 void VM::VM_ImprimirRegistradores(){
     cout << "PC: 0x" << std::hex << this->PC << " " << endl;
     cout << "I: 0x" << this->I << " " << endl;
-    cout << "SP: 0x" << (int)this->SP << "\n" << endl;
+    cout << "SP: 0x" << (int)this->SP << endl;
+    cout << "DT: 0x" << (int)this->DT << endl;
+    cout << "ST: 0x" << (int)this->ST << endl;
+    cout << "Topo da stack: 0x" << (int)this->stack[this->SP] << "\n" << endl;
     for(int i = 0; i < 16; i++)
         cout << "V[" << i << "]: 0x" << (int)this->V[i] << " " << endl;
+}
+
+void VM::VM_AtualizarTeclado(){
+    this->teclado.Atualizar();
+}
+
+void VM::VM_AtualizarTela(){
+    if (this->atualizarDisplay) {
+        this->tela.exibirImagem(this->DISPLAY);
+        this->atualizarDisplay = false;
+    }
+}
+
+void VM::VM_AtualizarTimers(){
+    if (this->DT > 0) this->DT--;
+    if (this->ST > 0) this->ST--;
+}
+
+void VM::VM_TocarSom(){
+    if (this->ST > 0) {
+        // beep
+    }
 }
