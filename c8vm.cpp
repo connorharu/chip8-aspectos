@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-VM::VM(uint16_t pc_inicial) : tela(10), teclado() {
-    this->PC = pc_inicial; // requisito valor passado por parametro
+VM::VM(uint16_t pc_inicial, Tela& tela): PC(pc_inicial), tela(tela), teclado() {
+
     for (int i = 0; i < 4096; i++){ this->RAM[i] = 0; }
     for (int i = 0; i < 16; i++){ this->V[i] = 0; }
     for (int i = 0; i < 16; i++){ this->stack[i] = 0; }
@@ -36,9 +36,12 @@ VM::VM(uint16_t pc_inicial) : tela(10), teclado() {
     }
 };
 
-void VM::VM_CarregarROM(char* arq_rom) {
+int VM::VM_CarregarROM(char* arq_rom) {
     ifstream rom(arq_rom, ios::binary); // abre como binario em modo leitura
-    if(!rom.is_open()) { cerr << "não foi possivel abrir o arquivo" << arq_rom << endl; }
+    if(!rom.is_open()) {
+        cerr << "não foi possivel abrir o arquivo " << arq_rom << endl;
+        return 1;
+    }
 
     rom.seekg(0, ios::end);
     size_t tamanho = rom.tellg(); // tamanho da ROM
@@ -47,7 +50,7 @@ void VM::VM_CarregarROM(char* arq_rom) {
     if(tamanho > (4096 - this->PC)) {
         cerr << "rom muito grande pra caber na memória" << endl;
         rom.close();
-        return;
+        return 1;
     }
 
     char* destino = reinterpret_cast<char*>(this->RAM + this->PC); // colocar bytes na RAM a partir desse endereço
@@ -55,12 +58,13 @@ void VM::VM_CarregarROM(char* arq_rom) {
     if(!rom) {
         cerr << "ocorreu um erro ao ler a ROM" << endl;
         rom.close();
-        return;
+        return 1;
     }
 
     rom.close();
     cout << "ROM carregada em 0x" << hex << this->PC << endl; // imprime hexadecimal
 
+    return 0;
 };
 
 void VM::VM_ExecutarInstrucao(){

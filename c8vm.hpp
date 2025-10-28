@@ -11,7 +11,7 @@ using namespace std;
 class VM {
     private: // acho que nao compensa fazer getter e setter pras variaveis
 
-    Tela tela;
+    Tela& tela;
     Teclado teclado;
     
     uint16_t PC;            // Program Counter
@@ -28,9 +28,9 @@ class VM {
 
     public:
 
-    VM(uint16_t pc_inicial);
+    VM(uint16_t pc_inicial, Tela& tela);
 
-    void VM_CarregarROM(char* arq_rom);
+    int VM_CarregarROM(char* arq_rom);
 
     void VM_ExecutarInstrucao();
 
