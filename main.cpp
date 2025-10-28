@@ -53,7 +53,6 @@ int main(int argc, char** argv){
 
     srand(10); // para instrução que precisa do rand()
     
-    
     const int TIMER_FREQ = 60; // 60Hz fixos (timers e tela)
     const double CPU_INTERVAL = 1000.0 / CPU_FREQ; // em ms
     const double TIMER_INTERVAL = 1000.0 / TIMER_FREQ; // em ms
@@ -62,21 +61,6 @@ int main(int argc, char** argv){
     Uint64 ultimo_tempo_timer = SDL_GetPerformanceCounter();
     double cpu_acumulado = 0.0;
     double timer_acumulado = 0.0;
-
-    // cout << "testando o teclado, CLICA DENTRO DA TELA SDL PRA CONSEGUIR TESTAR\n" << endl;
-
-    // bool sair = false;
-    // while(!sair) {
-    //     teclado.Atualizar();
-
-    //     for(int i = 0; i < 16; i++) {
-    //         if(teclado.Debounce(i)) {
-    //             cout << "a tecla " << hex << i << " foi pressionada\n" << endl;
-    //         }
-    //     }
-
-    //     SDL_Delay(50);
-    // }
 
     while(1) {
 
