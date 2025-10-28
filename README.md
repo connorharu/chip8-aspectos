@@ -2,6 +2,7 @@
 Código da implementação de um chip-8 para a disciplina de Aspectos de Linguagens de Programação.
 
 ## Mapeamento do teclado
+<pre>
 Teclado Chip-8 | Teclado Físico
 1              | 1
 2              | 2
@@ -24,3 +25,4 @@ F              | V
 4 5 6 D        | Q W E R
 7 8 9 E        | A S D F
 A 0 B F        | Z X C V
+</pre>
